@@ -4,7 +4,12 @@ import VueRouter from 'vue-router';
 import Routers from './router';
 import Util from './libs/util';
 import App from './app.vue';
-import 'iview/dist/styles/iview.css';
+import './my-theme/index.less';
+import axios from 'axios'
+import apis from './libs/apis'
+
+Vue.prototype.$axios = axios;
+Vue.prototype.$apis = apis;
 
 Vue.use(VueRouter);
 Vue.use(iView);

@@ -13,29 +13,11 @@ const routers = [
         },
         component: (resolve) => require(['./views/home/home.vue'], resolve),
         children: [{
-            path: 'welcome',
+            path: 'record',
             meta: {
-                title: 'welcome'
+                title: 'record'
             },
-            component: (resolve) => require(['./views/home/welcome.vue'], resolve)
-        }, {
-            path: 'test',
-            meta: {
-                title: 'test'
-            },
-            component: (resolve) => require(['./views/home/test.vue'], resolve)
-        }, {
-            path: 'test2',
-            meta: {
-                title: 'test2'
-            },
-            component: (resolve) => require(['./views/home/test2.vue'], resolve)
-        }, {
-            path: 'test3',
-            meta: {
-                title: 'test3'
-            },
-            component: (resolve) => require(['./views/home/test3.vue'], resolve)
+            component: (resolve) => require(['./views/home/record.vue'], resolve)
         }]
     }
 ];

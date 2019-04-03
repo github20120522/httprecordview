@@ -6,6 +6,9 @@ This project is build for Vue.js 2 + vue-router + webpack2 + iView 3, just insta
 ```bush
 // install dependencies
 npm install
+
+// npm i axios --save
+// 由于iView-project原本没有axios所以首次使用iView-project创建项目时需要安装
 ```
 ## Run
 ### Development
