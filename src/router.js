@@ -8,6 +8,7 @@ const routers = [
     },
     {
         path: '/home',
+        redirect: '/home/record',
         meta: {
             title: 'home'
         },

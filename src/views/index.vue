@@ -34,11 +34,11 @@
         <Row type="flex" justify="center" align="middle">
             <Col span="24">
                 <h1>
-                    <img src="../images/logo.png">
+                    <img src="../images/http.record.png">
                 </h1>
                 <h2>
-                    <p>Welcome to your iView app!</p>
-                    <Button @click="handleStart">Go to home/home.vue</Button>
+                    <p style="font-size: 20px; color: #2b85e4; font-style: italic;">Welcome to Http Record app!</p>
+                    <Button style="font-size: 18px" @click="handleStart" type="success">Go to Record Http</Button>
                 </h2>
             </Col>
         </Row>

@@ -6,11 +6,6 @@
         border-radius: 4px;
         overflow: hidden;
     }
-
-    .layout-header-bar {
-        background: #fff;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, .1);
-    }
 </style>
 <template>
     <div class="layout">
@@ -21,7 +16,7 @@
                         <Icon type="ios-navigate"></Icon>
                         Http
                     </template>
-                    <MenuItem name="record">Record</MenuItem>
+                    <MenuItem name="record" to="/home/record">Record</MenuItem>
                 </Submenu>
             </Menu>
         </Sider>
@@ -32,7 +27,7 @@
                     <BreadcrumbItem>{{activeMenu}}</BreadcrumbItem>
                 </Breadcrumb>
                 <Card>
-                    <div style="height: 800px">
+                    <div style="height: 840px">
                         <router-view style="position: relative"></router-view>
                     </div>
                 </Card>
@@ -48,12 +43,7 @@
             }
         },
         created() {
-            let routeTitle = this.$route.meta.title;
-            if (routeTitle === 'home') {
-                this.$router.push("/home/record");
-            } else {
-                this.activeMenu = routeTitle;
-            }
+            this.activeMenu = this.$route.meta.title;
         }
     }
 </script>
