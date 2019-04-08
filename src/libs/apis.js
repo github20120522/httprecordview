@@ -8,16 +8,16 @@ http.defaults.headers.post['Content-Type'] = 'application/json; charset=utf-8';
 
 let apis = {
     proxyStart(params, callback) {
-        http.post("/proxyStart", params).then(callback);
+        http.post("/api/record/proxyStart", params).then(callback);
     },
     proxyStop(callback) {
-        http.get("/proxyStop").then(callback);
+        http.get("/api/record/proxyStop").then(callback);
     },
     recordQuery(params, callback) {
-        http.post("/recordQuery", params).then(callback);
+        http.post("/api/record/recordQuery", params).then(callback);
     },
     recordDetail(params, callback) {
-        http.post("/recordDetail", params).then(callback);
+        http.post("/api/record/recordDetail", params).then(callback);
     }
 };
 

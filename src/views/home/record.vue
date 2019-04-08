@@ -2,18 +2,33 @@
     <div>
         <div style="margin-bottom: 3px">
             <Input placeholder="录制请求的域名，空格分割，* 代表所有，空代表不录制"
-                   :disabled="hostDisabled" v-model="recordSetting.host"/>
+                   :disabled="hostAble" size="large" v-model="recordSetting.host"/>
         </div>
-        <Button size="large" :type="proxyStatus" long style="margin-bottom: 3px;" @click="proxyToggle">
+        <Button size="large" :type="proxyStatus" shape="circle" :disabled="!recordSetting.proxyToggleAble" long
+                style="margin-bottom: 3px;" @click="proxyToggle">
             {{proxyStatusDesc}}
         </Button>
         <div style="margin-bottom: 3px">
-            <Input placeholder="URL字符匹配" v-model="recordSetting.filter"/>
+            <Input placeholder="URL字符匹配" size="large" :disabled="!recordSetting.proxyRunning" v-model="recordSetting.filter"/>
         </div>
-        <Table border ref="selection" :columns="columns" :data="data" height="300"></Table>
-        <Row style="background: #eee; padding: 10px; height: 430px;">
+        <Row>
             <Col span="12">
-                <Card style="height: 400px; overflow-y: scroll;">
+                <Button size="large" type="info" shape="circle" :disabled="!recordSetting.proxyRunning"
+                        long style="margin-bottom: 3px; margin-left: 1px;" @click="scrollClear">
+                    清空
+                </Button>
+            </Col>
+            <Col span="12">
+                <Button size="large" :type="scrollStatus" shape="circle" :disabled="!recordSetting.proxyRunning"
+                        long style="margin-bottom: 3px; margin-right: 1px;" @click="scrollToggle">
+                    {{scrollStatusDesc}}
+                </Button>
+            </Col>
+        </Row>
+        <Table border ref="selection" :columns="columns" :data="data" height="310"></Table>
+        <Row style="background: #eee; padding-top: 3px; height: 485px;">
+            <Col span="12">
+                <Card style="height: 465px; overflow-y: scroll;">
                     <p slot="title" style="color: green">
                         请求明细
                     </p>
@@ -23,7 +38,7 @@
                 </Card>
             </Col>
             <Col span="12">
-                <Card style="height: 400px; overflow-y: scroll;">
+                <Card style="height: 465px; overflow-y: scroll;">
                     <p slot="title" style="color: blue">
                         响应明细
                     </p>
@@ -40,19 +55,26 @@
         watch: {
             data() {
                 setTimeout(function () {
-                    document.querySelector('.ivu-table-body').scrollTop = document.querySelector('.ivu-table-body').scrollHeight;
-                }, 20);
+                    let tableEl = document.querySelector('.ivu-table-body');
+                    tableEl.scrollTop = tableEl.scrollHeight;
+                }, 1);
             }
         },
         computed: {
-            hostDisabled: function () {
+            hostAble: function () {
                 return this.recordSetting.proxyRunning;
             },
             proxyStatus: function () {
                 return this.recordSetting.proxyRunning ? 'error' : 'primary';
             },
             proxyStatusDesc: function () {
-                return this.recordSetting.proxyRunning ? '停止代理' : '启动代理';
+                return this.recordSetting.proxyRunning ? '停止代理（代理已启动，端口号：8088）' : '启动代理';
+            },
+            scrollStatus: function () {
+                return this.recordSetting.scrollAble ? 'success' : 'info';
+            },
+            scrollStatusDesc: function () {
+                return this.recordSetting.scrollAble ? '停止滚动' : '启动滚动';
             }
         },
         data() {
@@ -60,20 +82,17 @@
                 recordSetting: {
                     host: '',
                     filter: '',
-                    proxyRunning: false,
                     loopTimer: null,
-                    lastRecordId: 0
+                    lastRecordId: 0,
+                    scrollAble: true,
+                    proxyRunning: false,
+                    proxyToggleAble: true
                 },
                 recordData: {
                     request: [],
                     response: []
                 },
                 columns: [
-                    {
-                        type: 'selection',
-                        width: 60,
-                        align: 'center'
-                    },
                     {
                         title: '方法',
                         key: 'method',
@@ -100,7 +119,7 @@
                                     },
                                     on: {
                                         click: () => {
-                                            this.view(params)
+                                            this.recordDetail(params.row.id);
                                         }
                                     }
                                 }, '详细信息')
@@ -112,44 +131,58 @@
             }
         },
         methods: {
-            view(params) {
-                this.recordDetail(params.row.id);
-            },
             proxyToggle() {
-                this.recordSetting.proxyRunning ? this.proxyStop() : this.proxyStart();
+                this.recordSetting.proxyToggleAble && this.recordSetting.proxyRunning ? this.proxyStop() : this.proxyStart();
             },
             proxyStart() {
                 let me = this;
+                this.recordSetting.proxyToggleAble = false;
                 this.$apis.proxyStart({
                     host: me.recordSetting.host
                 }, function (result) {
+                    me.recordSetting.proxyToggleAble = true;
                     if (result.data.success) {
                         me.recordSetting.proxyRunning = true;
-                        if (me.recordSetting.loopTimer) {
-                            clearInterval(me.recordSetting.loopTimer);
-                        }
-                        me.recordSetting.loopTimer = setInterval(function () {
-                            me.recordQuery();
-                        }, 1000);
+                        me.scrollStart();
                     } else {
-                        this.$Modal.info(result.data.message);
+                        me.$Modal.info({title: '提示', content: result.data.message});
                     }
                 });
             },
             proxyStop() {
                 let me = this;
+                this.recordSetting.proxyToggleAble = false;
                 this.$apis.proxyStop(function (result) {
+                    me.recordSetting.proxyToggleAble = true;
                     if (result.data.success) {
                         me.recordSetting.proxyRunning = false;
-                        if (me.recordSetting.loopTimer) {
-                            clearInterval(me.recordSetting.loopTimer);
-                            me.recordSetting.loopTimer = null;
-                            me.recordSetting.lastRecordId = 0;
-                        }
+                        me.scrollStop();
+                        me.recordSetting.lastRecordId = 0;
                     } else {
-                        this.$Modal.info(result.data.message);
+                        me.$Modal.info({title: '提示', content: result.data.message});
                     }
                 });
+            },
+            scrollToggle() {
+                this.recordSetting.scrollAble ? this.scrollStop() : this.scrollStart();
+            },
+            scrollClear() {
+                this.data = [];
+            },
+            scrollStart() {
+                let me = this;
+                this.scrollStop();
+                me.recordSetting.scrollAble = true;
+                me.recordSetting.loopTimer = setInterval(function () {
+                    me.recordQuery();
+                }, 1000);
+            },
+            scrollStop() {
+                if (this.recordSetting.loopTimer) {
+                    clearInterval(this.recordSetting.loopTimer);
+                    this.recordSetting.loopTimer = null;
+                }
+                this.recordSetting.scrollAble = false;
             },
             recordQuery() {
                 let me = this;
@@ -166,7 +199,7 @@
                             me.recordSetting.lastRecordId = records[records.length - 1].id;
                         }
                     } else {
-                        this.$Modal.info(result.data().message);
+                        me.$Modal.info({title: '提示', content: result.data.message});
                     }
                 });
             },
@@ -179,7 +212,7 @@
                         me.recordData.request = result.data.data.request;
                         me.recordData.response = result.data.data.response;
                     } else {
-                        this.$Modal.info(result.data().message);
+                        me.$Modal.info({title: '提示', content: result.data.message});
                     }
                 });
             }

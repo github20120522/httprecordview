@@ -21,16 +21,10 @@
             </Menu>
         </Sider>
         <Layout :style="{marginLeft: '200px'}">
-            <Content :style="{padding: '0 16px 16px'}">
-                <Breadcrumb :style="{margin: '16px 0'}">
-                    <BreadcrumbItem>home</BreadcrumbItem>
-                    <BreadcrumbItem>{{activeMenu}}</BreadcrumbItem>
-                </Breadcrumb>
-                <Card>
-                    <div style="height: 840px">
+            <Content :style="{padding: '0'}">
+                    <div style="height: 945px; padding: 5px">
                         <router-view style="position: relative"></router-view>
                     </div>
-                </Card>
             </Content>
         </Layout>
     </div>
