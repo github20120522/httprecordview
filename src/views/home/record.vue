@@ -9,7 +9,8 @@
             {{proxyStatusDesc}}
         </Button>
         <div style="margin-bottom: 3px">
-            <Input placeholder="URL字符匹配" size="large" :disabled="!recordSetting.proxyRunning" v-model="recordSetting.filter"/>
+            <Input placeholder="URL字符匹配" size="large" :disabled="!recordSetting.proxyRunning"
+                   v-model="recordSetting.filter"/>
         </div>
         <Row>
             <Col span="12">
@@ -25,10 +26,10 @@
                 </Button>
             </Col>
         </Row>
-        <Table border ref="selection" :columns="columns" :data="data" height="310"></Table>
-        <Row style="background: #eee; padding-top: 3px; height: 485px;">
+        <Table border ref="selection" :columns="columns" :data="data" height="290"></Table>
+        <Row style="background: #eee; padding-top: 3px; height: 505px;">
             <Col span="12">
-                <Card style="height: 465px; overflow-y: scroll;">
+                <Card style="height: 485px; overflow-y: scroll; overflow-wrap: break-word;">
                     <p slot="title" style="color: green">
                         请求明细
                     </p>
@@ -38,7 +39,7 @@
                 </Card>
             </Col>
             <Col span="12">
-                <Card style="height: 465px; overflow-y: scroll;">
+                <Card style="height: 485px; overflow-y: scroll; overflow-wrap: break-word;">
                     <p slot="title" style="color: blue">
                         响应明细
                     </p>
@@ -83,7 +84,7 @@
                     host: '',
                     filter: '',
                     loopTimer: null,
-                    lastRecordId: 0,
+                    lastRecordId: '0',
                     scrollAble: true,
                     proxyRunning: false,
                     proxyToggleAble: true
@@ -147,6 +148,12 @@
                     } else {
                         me.$Modal.info({title: '提示', content: result.data.message});
                     }
+                }, function (err) {
+                    me.recordSetting.proxyToggleAble = true;
+                    me.recordSetting.proxyRunning = false;
+                    me.scrollStop();
+                    me.recordSetting.lastRecordId = '0';
+                    me.$Modal.info({title: '提示', content: "代理服务没响应"});
                 });
             },
             proxyStop() {
@@ -157,10 +164,16 @@
                     if (result.data.success) {
                         me.recordSetting.proxyRunning = false;
                         me.scrollStop();
-                        me.recordSetting.lastRecordId = 0;
+                        me.recordSetting.lastRecordId = '0';
                     } else {
                         me.$Modal.info({title: '提示', content: result.data.message});
                     }
+                }, function (err) {
+                    me.recordSetting.proxyToggleAble = true;
+                    me.recordSetting.proxyRunning = false;
+                    me.scrollStop();
+                    me.recordSetting.lastRecordId = '0';
+                    me.$Modal.info({title: '提示', content: "代理服务没响应"});
                 });
             },
             scrollToggle() {
@@ -173,38 +186,51 @@
                 let me = this;
                 this.scrollStop();
                 me.recordSetting.scrollAble = true;
-                me.recordSetting.loopTimer = setInterval(function () {
-                    me.recordQuery();
-                }, 1000);
+                me.recordQuery();
             },
             scrollStop() {
-                if (this.recordSetting.loopTimer) {
-                    clearInterval(this.recordSetting.loopTimer);
-                    this.recordSetting.loopTimer = null;
-                }
                 this.recordSetting.scrollAble = false;
+                this.recordQueryStop();
             },
             recordQuery() {
                 let me = this;
-                this.$apis.recordQuery({
-                    filter: me.recordSetting.filter,
-                    lastRecordId: me.recordSetting.lastRecordId
-                }, function (result) {
-                    if (result.data.success) {
-                        let records = result.data.data.records;
-                        if (records && records.length > 0) {
-                            for (let i = 0; i < records.length; i++) {
-                                me.data.push(records[i]);
+                me.recordSetting.loopTimer = setTimeout(function () {
+                    me.$apis.recordQuery({
+                        lastRecordId: me.recordSetting.lastRecordId
+                    }, function (result) {
+                        if (result.data.success) {
+                            let records = result.data.data;
+                            if (records && records.length > 0) {
+                                for (let i = 0; i < records.length; i++) {
+                                    if (me.recordSetting.filter) {
+                                        if (records[i].url.indexOf(me.recordSetting.filter) > -1) {
+                                            me.data.push(records[i]);
+                                        }
+                                    } else {
+                                        me.data.push(records[i]);
+                                    }
+                                }
+                                me.recordSetting.lastRecordId = records[records.length - 1].id;
                             }
-                            me.recordSetting.lastRecordId = records[records.length - 1].id;
+                        } else {
+                            me.$Modal.info({title: '提示', content: result.data.message});
                         }
-                    } else {
-                        me.$Modal.info({title: '提示', content: result.data.message});
-                    }
-                });
+                        me.recordQuery();
+                    }, function (err) {
+                        me.proxyStop();
+                    });
+                }, 1000);
+            },
+            recordQueryStop() {
+                if (this.recordSetting.loopTimer) {
+                    clearTimeout(this.recordSetting.loopTimer);
+                    this.recordSetting.loopTimer = null;
+                }
             },
             recordDetail(id) {
                 let me = this;
+                me.recordData.request = [];
+                me.recordData.response = [];
                 this.$apis.recordDetail({
                     recordId: id
                 }, function (result) {
@@ -214,6 +240,8 @@
                     } else {
                         me.$Modal.info({title: '提示', content: result.data.message});
                     }
+                }, function (err) {
+                    me.proxyStop();
                 });
             }
         }

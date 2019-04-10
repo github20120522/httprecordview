@@ -5,19 +5,28 @@ let isMock = Env === 'development';
 let basePath = isMock ? "http://localhost" : "";
 http.defaults.baseURL = basePath;
 http.defaults.headers.post['Content-Type'] = 'application/json; charset=utf-8';
+http.defaults.timeout = 2000;
 
 let apis = {
-    proxyStart(params, callback) {
-        http.post("/api/record/proxyStart", params).then(callback);
+    proxyStart(params, callback, errCallback) {
+        http.post("/api/record/proxyStart", params)
+            .then(callback)
+            .catch(errCallback);
     },
-    proxyStop(callback) {
-        http.get("/api/record/proxyStop").then(callback);
+    proxyStop(callback, errCallback) {
+        http.get("/api/record/proxyStop")
+            .then(callback)
+            .catch(errCallback);
     },
-    recordQuery(params, callback) {
-        http.post("/api/record/recordQuery", params).then(callback);
+    recordQuery(params, callback, errCallback) {
+        http.post("/api/record/recordQuery", params)
+            .then(callback)
+            .catch(errCallback);
     },
-    recordDetail(params, callback) {
-        http.post("/api/record/recordDetail", params).then(callback);
+    recordDetail(params, callback, errCallback) {
+        http.post("/api/record/recordDetail", params)
+            .then(callback)
+            .catch(errCallback);
     }
 };
 
