@@ -5,7 +5,7 @@ let isMock = Env === 'development';
 let basePath = isMock ? "http://localhost" : "";
 http.defaults.baseURL = basePath;
 http.defaults.headers.post['Content-Type'] = 'application/json; charset=utf-8';
-http.defaults.timeout = 2000;
+http.defaults.timeout = 10000;
 
 let apis = {
     proxyStart(params, callback, errCallback) {

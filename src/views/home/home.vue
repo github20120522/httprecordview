@@ -22,7 +22,7 @@
         </Sider>
         <Layout :style="{marginLeft: '200px'}">
             <Content :style="{padding: '0'}">
-                    <div style="height: 945px; padding: 5px">
+                    <div style="padding: 5px">
                         <router-view style="position: relative"></router-view>
                     </div>
             </Content>

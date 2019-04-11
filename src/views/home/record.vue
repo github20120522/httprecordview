@@ -9,8 +9,20 @@
             {{proxyStatusDesc}}
         </Button>
         <div style="margin-bottom: 3px">
-            <Input placeholder="URL字符匹配" size="large" :disabled="!recordSetting.proxyRunning"
-                   v-model="recordSetting.filter"/>
+            <Row>
+                <Col span="12">
+                    <Input placeholder="HOST字符串匹配"
+                           style="margin-right: 1px;"
+                           size="large" :disabled="!recordSetting.proxyRunning"
+                           v-model="recordSetting.hostFilter"/>
+                </Col>
+                <Col span="12">
+                    <Input placeholder="URL字符匹配"
+                           style="margin-left: 1px;"
+                           size="large" :disabled="!recordSetting.proxyRunning"
+                           v-model="recordSetting.urlFilter"/>
+                </Col>
+            </Row>
         </div>
         <Row>
             <Col span="12">
@@ -26,10 +38,10 @@
                 </Button>
             </Col>
         </Row>
-        <Table border ref="selection" :columns="columns" :data="data" height="290"></Table>
-        <Row style="background: #eee; padding-top: 3px; height: 505px;">
+        <Table border ref="table" :columns="columns" :data="data" height="260"></Table>
+        <Row ref="card" style="background: #eee; padding-top: 3px;">
             <Col span="12">
-                <Card style="height: 485px; overflow-y: scroll; overflow-wrap: break-word;">
+                <Card :style="{height: cardHeight, 'overflow-y': 'scroll', 'overflow-wrap': 'break-word'}">
                     <p slot="title" style="color: green">
                         请求明细
                     </p>
@@ -39,7 +51,7 @@
                 </Card>
             </Col>
             <Col span="12">
-                <Card style="height: 485px; overflow-y: scroll; overflow-wrap: break-word;">
+                <Card :style="{height: cardHeight, 'overflow-y': 'scroll', 'overflow-wrap': 'break-word'}">
                     <p slot="title" style="color: blue">
                         响应明细
                     </p>
@@ -53,6 +65,9 @@
 </template>
 <script>
     export default {
+        mounted() {
+            this.cardHeight = (window.innerHeight - this.$refs.card.$el.offsetTop - 15) + 'px';
+        },
         watch: {
             data() {
                 setTimeout(function () {
@@ -69,7 +84,7 @@
                 return this.recordSetting.proxyRunning ? 'error' : 'primary';
             },
             proxyStatusDesc: function () {
-                return this.recordSetting.proxyRunning ? '停止代理（代理已启动，端口号：8088）' : '启动代理';
+                return this.recordSetting.proxyRunning ? '停止代理（代理已启动，端口号：23333）' : '启动代理';
             },
             scrollStatus: function () {
                 return this.recordSetting.scrollAble ? 'success' : 'info';
@@ -80,9 +95,11 @@
         },
         data() {
             return {
+                cardHeight: '0px',
                 recordSetting: {
                     host: '',
-                    filter: '',
+                    urlFilter: '',
+                    hostFilter: '',
                     loopTimer: null,
                     lastRecordId: '0',
                     scrollAble: true,
@@ -94,6 +111,11 @@
                     response: []
                 },
                 columns: [
+                    {
+                        title: '域名',
+                        key: 'host',
+                        width: 260
+                    },
                     {
                         title: '方法',
                         key: 'method',
@@ -202,11 +224,23 @@
                             let records = result.data.data;
                             if (records && records.length > 0) {
                                 for (let i = 0; i < records.length; i++) {
-                                    if (me.recordSetting.filter) {
-                                        if (records[i].url.indexOf(me.recordSetting.filter) > -1) {
-                                            me.data.push(records[i]);
+                                    let hostFlag = false;
+                                    let urlFlag = false;
+                                    if (me.recordSetting.hostFilter) {
+                                        if (records[i].host.indexOf(me.recordSetting.hostFilter) > -1) {
+                                            hostFlag = true;
                                         }
                                     } else {
+                                        hostFlag = true;
+                                    }
+                                    if (me.recordSetting.urlFilter) {
+                                        if (records[i].url.indexOf(me.recordSetting.urlFilter) > -1) {
+                                            urlFlag = true;
+                                        }
+                                    } else {
+                                        urlFlag = true;
+                                    }
+                                    if (hostFlag && urlFlag) {
                                         me.data.push(records[i]);
                                     }
                                 }
