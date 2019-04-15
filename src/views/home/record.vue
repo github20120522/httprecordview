@@ -119,7 +119,7 @@
                     {
                         title: '方法',
                         key: 'method',
-                        width: 80
+                        width: 150
                     },
                     {
                         title: '请求地址',
