@@ -244,6 +244,9 @@
                                         me.data.push(records[i]);
                                     }
                                 }
+                                if (me.data.length > 100) {
+                                    me.data.splice(0, 50);
+                                }
                                 me.recordSetting.lastRecordId = records[records.length - 1].id;
                             }
                         } else {
